@@ -9,35 +9,127 @@
 <body>
     <div class="dashboard-container">
         <header class="dashboard-header">
-            <h1>Dashboard</h1>
+            <h1>🚀 Cybersecurity Dashboard</h1>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </header>
         
         <div class="dashboard-content">
             <div class="welcome-section">
-                <h2>Welcome Back, User!</h2>
-                <p>You've successfully logged in. Here's your overview.</p>
+                <h2>Welcome Back, Cyber Warrior!</h2>
+                <p>Track your progress on the ZERO TO HERO CYBERSECURITY ROADMAP. Build skills from beginner to expert with 50+ projects. Let's secure the digital world!</p>
             </div>
             
             <div class="stats-section">
                 <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <p>42</p>
+                    <h3>Projects Completed</h3>
+                    <p>5 / 50</p>  <!-- Placeholder: Update with real progress -->
                 </div>
                 <div class="stat-card">
-                    <h3>Active Sessions</h3>
-                    <p>1</p>
+                    <h3>Current Level</h3>
+                    <p>1 (Foundations)</p>  <!-- Placeholder -->
                 </div>
                 <div class="stat-card">
-                    <h3>Notifications</h3>
-                    <p>3</p>
+                    <h3>Skills Mastered</h3>
+                    <p>10</p>  <!-- Placeholder -->
+                </div>
+            </div>
+            
+            <!-- New Roadmap Overview Section -->
+            <div class="roadmap-section">
+                <h2>🛠 Cybersecurity Roadmap Overview</h2>
+                <p>Organized from beginner to expert. Click a level to expand and see projects.</p>
+                
+                <div class="level-card" onclick="toggleProjects('level1')">
+                    <h3>🟩 LEVEL 1 — FOUNDATIONS (Beginner)</h3>
+                    <p>Goal: Master Linux, networking, scripting, and core concepts. Projects: 10</p>
+                    <div id="level1" class="projects-list">
+                        <ul>
+                            <li>Home Lab Setup (WSL2 Kali + VirtualBox + networks)</li>
+                            <li>Packet Sniffer (Python + Scapy)</li>
+                            <li>Firewall Rules (iptables, ufw, Windows firewall)</li>
+                            <li>Basic Cryptography Scripts (AES, RSA, hashing)</li>
+                            <li>Password Cracker (Python + hashcat basics)</li>
+                            <li>Wi-Fi Security Analysis (handshake capture, WPA/WPA2)</li>
+                            <li>Network Vulnerability Scanning (Nmap automation)</li>
+                            <li>2FA System (TOTP generator app)</li>
+                            <li>Phishing Campaign Simulator (safe internal test)</li>
+                            <li>Secure Web App (simple Flask app with login system)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="level-card" onclick="toggleProjects('level2')">
+                    <h3>🟧 LEVEL 2 — INTERMEDIATE (Real Cybersecurity Skills)</h3>
+                    <p>Goal: Learn pentesting, forensics, malware analysis, threat detection. Projects: 15</p>
+                    <div id="level2" class="projects-list">
+                        <ul>
+                            <li>Snort IDS Setup</li>
+                            <li>Vulnerability Scanner Tool (your own scanner using Python)</li>
+                            <li>DNS Spoofer (Scapy)</li>
+                            <li>Malware Project (benign test malware for learning)</li>
+                            <li>Antivirus Engine (simple signature + heuristic detection)</li>
+                            <li>Anomaly Detection System (Python ML)</li>
+                            <li>Forensic Analysis (image acquisition + autopsy)</li>
+                            <li>TLS Mutual Authentication (certificates + OpenSSL)</li>
+                            <li>Anonymous Communication Tool (Tor API)</li>
+                            <li>Threat Intelligence Honeypots (Cowrie, Dionaea)</li>
+                            <li>Password Cracking GPU Cluster (hashcat + GPU setup)</li>
+                            <li>Malware Reverse Engineering (Ghidra, Radare2 basics)</li>
+                            <li>IDS/IPS with Machine Learning</li>
+                            <li>Secure Messaging App (end-to-end encryption)</li>
+                            <li>Dark Web Scraper (Tor + Python)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="level-card" onclick="toggleProjects('level3')">
+                    <h3>🟥 LEVEL 3 — ADVANCED (Offensive + Defensive Mastery)</h3>
+                    <p>Goal: Exploit dev, malware analysis, cyber ranges, rootkits. Projects: 15</p>
+                    <div id="level3" class="projects-list">
+                        <ul>
+                            <li>Malware Analysis Sandbox</li>
+                            <li>Full Disk Encryption System</li>
+                            <li>Anonymizing Routing System</li>
+                            <li>Secure Cryptocurrency Wallet</li>
+                            <li>Rootkit Analysis Project</li>
+                            <li>DDoS Simulation Lab</li>
+                            <li>PKI Infrastructure</li>
+                            <li>Zero-Day Vulnerability Research</li>
+                            <li>Custom Assessment Tools Suite</li>
+                            <li>Firmware Reverse Engineering</li>
+                            <li>ICS/SCADA Security Project</li>
+                            <li>Advanced Firewall</li>
+                            <li>IoT Security Tools</li>
+                            <li>Nation State Malware Analysis</li>
+                            <li>Smart Contract Auditing (Web3 Security)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="level-card" onclick="toggleProjects('level4')">
+                    <h3>🟪 LEVEL 4 — EXPERT (Top 1% Level)</h3>
+                    <p>Goal: Build tools for red/blue teams. Projects: 10</p>
+                    <div id="level4" class="projects-list">
+                        <ul>
+                            <li>Custom Cyber Range</li>
+                            <li>Malware Obfuscation Engine</li>
+                            <li>In-Memory Evasion (fileless techniques)</li>
+                            <li>Linux/Windows Kernel Backdoor</li>
+                            <li>Side Channel Attacks</li>
+                            <li>ARM/x86 Rootkit Development</li>
+                            <li>Advanced Threat Detection with Machine Learning</li>
+                            <li>Zero-Day Exploit Development Pipeline</li>
+                            <li>Custom Security Orchestration Tools</li>
+                            <li>Full Red Team/Blue Team Simulation Lab</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             
             <div class="actions-section">
-                <button class="btn-action">View Profile</button>
-                <button class="btn-action">Settings</button>
-                <button class="btn-action">Reports</button>
+                <button class="btn-action" onclick="alert('Feature coming soon!')">Start Next Project</button>
+                <button class="btn-action" onclick="alert('View full roadmap details')">View Roadmap</button>
+                <button class="btn-action" onclick="alert('Track your progress')">Track Progress</button>
             </div>
         </div>
     </div>

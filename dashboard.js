@@ -1,4 +1,4 @@
-// dashboard.js - Dashboard functionality with level locking system
+// dashboard.js - Final working version
 
 // Authentication check
 (function checkAuth() {
@@ -20,7 +20,7 @@
 
 // Main dashboard functionality
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("Dashboard loading...");
+    console.log("Dashboard initializing...");
     
     const STORAGE_KEY = "cyber_dashboard_progress";
     const UNLOCK_THRESHOLD = 70;
@@ -32,10 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         level4: { name: "Expert", unlocks: null }
     };
 
-    const completedDisplay = document.getElementById("completedCount");
-    const skillDisplay = document.getElementById("skillsDisplay");
-    const currentLevelDisplay = document.getElementById("currentLevelDisplay");
-
     // Load saved data
     const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
         checked: {},
@@ -44,23 +40,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     /* =========================
-       CORE FUNCTIONS
+       HELPER FUNCTIONS
     ========================= */
-    
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
-        console.log("Data saved:", savedData);
     }
     
     function showNotification(message) {
         const existing = document.querySelector(".notification");
         if (existing) existing.remove();
-
+        
         const notification = document.createElement("div");
         notification.className = "notification";
         notification.textContent = message;
         document.body.appendChild(notification);
-
+        
         setTimeout(() => {
             notification.style.animation = "slideOut 0.3s ease";
             setTimeout(() => notification.remove(), 300);
@@ -68,108 +62,77 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     /* =========================
-       LEVEL CLICK HANDLER - SIMPLIFIED
+       TOGGLE PROJECTS FUNCTION
     ========================= */
     window.toggleProjects = function(levelId) {
-        console.log("toggleProjects called for:", levelId);
+        console.log("Clicked level:", levelId);
         
         // Check if level is unlocked
         if (!savedData.unlockedLevels.includes(levelId)) {
-            const targetLevelName = levelMap[levelId]?.name || "this level";
-            alert(`🔒 Complete ${UNLOCK_THRESHOLD}% of the previous level to unlock ${targetLevelName}`);
-            return false;
+            alert(`🔒 Complete ${UNLOCK_THRESHOLD}% of the previous level to unlock ${levelMap[levelId]?.name}`);
+            return;
         }
-
+        
         // Hide all project lists
         document.querySelectorAll(".projects-list").forEach(list => {
             list.style.display = "none";
         });
-
-        // Show selected project list
-        const target = document.getElementById(levelId);
-        if (target) {
-            target.style.display = "block";
-            console.log("Showing projects for:", levelId);
+        
+        // Show clicked level's projects
+        const targetList = document.getElementById(levelId);
+        if (targetList) {
+            targetList.style.display = "block";
         }
-
-        // Update active level styling
+        
+        // Update active card styling
         document.querySelectorAll(".level-card").forEach(card => {
             card.classList.remove("active-level");
         });
         
-        // Find and highlight the clicked card
+        // Find and activate the clicked card
         document.querySelectorAll(".level-card").forEach(card => {
-            const onclickAttr = card.getAttribute('onclick');
-            if (onclickAttr && onclickAttr.includes(`toggleProjects('${levelId}')`)) {
+            if (card.getAttribute('onclick')?.includes(levelId)) {
                 card.classList.add("active-level");
-                console.log("Activated level:", levelId);
             }
         });
-
+        
         // Update current level display
+        const currentLevelDisplay = document.getElementById("currentLevelDisplay");
         if (currentLevelDisplay && levelMap[levelId]) {
             currentLevelDisplay.textContent = levelMap[levelId].name;
         }
         
         savedData.currentLevel = levelId;
         saveData();
-        return true;
     };
-
+    
     /* =========================
-       PROGRESS CALCULATION
-    ========================= */
-    function calculateLevelProgress(levelId) {
-        const projectsList = document.getElementById(levelId);
-        if (!projectsList) {
-            console.log("Projects list not found for:", levelId);
-            return 0;
-        }
-        
-        const checkboxes = projectsList.querySelectorAll("input[type='checkbox']");
-        if (!checkboxes.length) {
-            console.log("No checkboxes found for:", levelId);
-            return 0;
-        }
-        
-        const completed = [...checkboxes].filter(cb => cb.checked).length;
-        const total = checkboxes.length;
-        const percent = Math.round((completed / total) * 100);
-        
-        console.log(`Level ${levelId}: ${completed}/${total} = ${percent}%`);
-        return percent;
-    }
-
-    /* =========================
-       UPDATE PROGRESS & UNLOCKS
+       CALCULATE AND UPDATE PROGRESS
     ========================= */
     function updateProgress() {
-        console.log("Updating progress...");
         let totalCompleted = 0;
         const newlyUnlocked = [];
-
+        
         // Process each level
         Object.keys(levelMap).forEach(levelId => {
-            const percent = calculateLevelProgress(levelId);
-            
-            // Find the corresponding level card
-            const levelCard = document.querySelector(`.level-card[onclick*="${levelId}"]`);
-            if (!levelCard) {
-                console.log("Level card not found for:", levelId);
-                return;
-            }
-            
             const projectsList = document.getElementById(levelId);
             if (!projectsList) return;
             
             const checkboxes = projectsList.querySelectorAll("input[type='checkbox']");
             const completed = [...checkboxes].filter(cb => cb.checked).length;
             const total = checkboxes.length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            totalCompleted += completed;
+            
+            // Find corresponding level card
+            const levelCard = document.querySelector(`.level-card[onclick*="${levelId}"]`);
+            if (!levelCard) return;
             
             // Update progress bar
             const progressBar = levelCard.querySelector(".progress");
             if (progressBar) {
-                progressBar.style.width = percent + "%";
+                progressBar.style.width = `${percent}%`;
             }
             
             // Update progress text
@@ -178,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 progressText.textContent = `Progress: ${completed} / ${total} projects (${percent}%)`;
             }
             
-            // Handle unlock status
+            // Handle unlock status display
             let unlockText = levelCard.querySelector(".unlock-status");
             if (!unlockText) {
                 unlockText = document.createElement("div");
@@ -186,133 +149,106 @@ document.addEventListener("DOMContentLoaded", () => {
                 levelCard.appendChild(unlockText);
             }
             
-            if (levelMap[levelId].unlocks && percent >= UNLOCK_THRESHOLD) {
-                const nextLevel = levelMap[levelId].unlocks;
-                if (!savedData.unlockedLevels.includes(nextLevel)) {
-                    savedData.unlockedLevels.push(nextLevel);
-                    newlyUnlocked.push(nextLevel);
-                    console.log("Unlocked new level:", nextLevel);
+            if (levelMap[levelId].unlocks) {
+                if (percent >= UNLOCK_THRESHOLD) {
+                    const nextLevel = levelMap[levelId].unlocks;
+                    if (!savedData.unlockedLevels.includes(nextLevel)) {
+                        savedData.unlockedLevels.push(nextLevel);
+                        newlyUnlocked.push(nextLevel);
+                    }
+                    unlockText.textContent = `✅ Unlocks: ${levelMap[nextLevel].name}`;
+                    unlockText.style.color = "#4ade80";
+                } else {
+                    unlockText.textContent = `🔒 ${UNLOCK_THRESHOLD}% required to unlock ${levelMap[levelMap[levelId].unlocks].name}`;
+                    unlockText.style.color = "#94a3b8";
                 }
-                unlockText.textContent = `✅ Unlocks: ${levelMap[nextLevel].name}`;
-                unlockText.style.color = "#4ade80";
-            } else if (levelMap[levelId].unlocks) {
-                unlockText.textContent = `🔒 ${UNLOCK_THRESHOLD}% required to unlock ${levelMap[levelMap[levelId].unlocks].name}`;
-                unlockText.style.color = "#94a3b8";
             } else {
                 unlockText.textContent = "🏁 Final Level";
                 unlockText.style.color = "#f59e0b";
             }
             
-            // Apply unlock status to card
+            // Update card lock status
             const isUnlocked = savedData.unlockedLevels.includes(levelId);
-            if (isUnlocked) {
-                levelCard.classList.remove("locked");
-                levelCard.style.cursor = "pointer";
-                levelCard.style.opacity = "1";
-                
-                // Remove lock overlay if present
-                const lockOverlay = levelCard.querySelector(".lock-overlay");
-                if (lockOverlay) {
-                    lockOverlay.remove();
-                }
-            } else if (levelId !== "level1") {
+            if (!isUnlocked && levelId !== "level1") {
                 levelCard.classList.add("locked");
-                levelCard.style.cursor = "not-allowed";
-                levelCard.style.opacity = "0.7";
                 
                 // Add lock overlay if not present
                 if (!levelCard.querySelector(".lock-overlay")) {
                     const lockOverlay = document.createElement("div");
                     lockOverlay.className = "lock-overlay";
                     lockOverlay.innerHTML = "🔒";
-                    lockOverlay.style.cssText = `
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        font-size: 2rem;
-                        z-index: 2;
-                        opacity: 0.5;
-                    `;
                     levelCard.appendChild(lockOverlay);
                 }
+            } else {
+                levelCard.classList.remove("locked");
+                const lockOverlay = levelCard.querySelector(".lock-overlay");
+                if (lockOverlay) {
+                    lockOverlay.remove();
+                }
             }
-            
-            totalCompleted += completed;
         });
-
-        // Update global stats
-        if (completedDisplay) {
-            completedDisplay.textContent = `${totalCompleted} projects completed`;
-        }
         
-        if (skillDisplay) {
-            skillDisplay.textContent = totalCompleted;
-        }
-
+        // Update global stats
+        const completedDisplay = document.getElementById("completedCount");
+        const skillDisplay = document.getElementById("skillsDisplay");
+        
+        if (completedDisplay) completedDisplay.textContent = `${totalCompleted} projects completed`;
+        if (skillDisplay) skillDisplay.textContent = totalCompleted;
+        
         saveData();
-
+        
         // Show unlock notifications
         if (newlyUnlocked.length > 0) {
             newlyUnlocked.forEach(unlockedId => {
                 showNotification(`🎉 Level Unlocked: ${levelMap[unlockedId].name}`);
             });
         }
-        
-        console.log("Progress update complete. Total completed:", totalCompleted);
     }
-
+    
     /* =========================
-       CHECKBOX HANDLING
+       SETUP CHECKBOXES
     ========================= */
     function setupCheckboxes() {
-        console.log("Setting up checkboxes...");
-        
         document.querySelectorAll("input[type='checkbox']").forEach((cb, index) => {
-            // Use checkbox ID or create one
-            const checkboxId = cb.id || `checkbox_${index}`;
-            cb.id = checkboxId;
-            
-            // Find corresponding label
-            const label = cb.nextElementSibling;
-            if (label && label.tagName === 'LABEL') {
-                label.setAttribute('for', checkboxId);
+            // Create unique ID if needed
+            if (!cb.id) {
+                cb.id = `checkbox-${index}`;
             }
             
-            // Create unique storage key
-            const storageKey = label ? label.textContent.trim() : checkboxId;
+            // Find label
+            const label = cb.nextElementSibling?.tagName === 'LABEL' ? cb.nextElementSibling : null;
+            if (label && !label.getAttribute('for')) {
+                label.setAttribute('for', cb.id);
+            }
             
-            // Restore checked state
+            // Create storage key
+            const storageKey = label?.textContent?.trim() || cb.id;
+            
+            // Restore state
             if (savedData.checked[storageKey]) {
                 cb.checked = true;
-                console.log("Restored checkbox:", storageKey);
             }
             
-            // Add change listener
+            // Add event listener
             cb.addEventListener("change", () => {
                 savedData.checked[storageKey] = cb.checked;
                 saveData();
                 updateProgress();
-                console.log("Checkbox changed:", storageKey, cb.checked);
             });
         });
-        
-        console.log("Checkboxes setup complete");
     }
-
+    
     /* =========================
-       INITIALIZATION
+       INITIALIZE DASHBOARD
     ========================= */
     function initializeDashboard() {
-        console.log("Initializing dashboard...");
+        console.log("Setting up dashboard...");
         
         // Setup checkboxes
         setupCheckboxes();
         
         // Set initial active level
         const initialLevel = savedData.currentLevel || "level1";
-        console.log("Initial level:", initialLevel, "Unlocked levels:", savedData.unlockedLevels);
-        
         if (savedData.unlockedLevels.includes(initialLevel)) {
             toggleProjects(initialLevel);
         } else {
@@ -322,11 +258,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Initial progress update
         updateProgress();
         
-        console.log("Dashboard initialized successfully");
+        console.log("Dashboard ready!");
     }
-
+    
     /* =========================
-       UTILITY FUNCTIONS
+       GLOBAL FUNCTIONS
     ========================= */
     window.resetProgress = () => {
         if (confirm("Reset all progress? This will clear all completed projects and level unlocks.")) {
@@ -339,28 +275,26 @@ document.addEventListener("DOMContentLoaded", () => {
             location.reload();
         }
     };
-
+    
     window.logout = () => {
         localStorage.removeItem('userLoggedIn');
         localStorage.removeItem('userIdentifier');
         window.location.href = "index.html";
     };
-
-    // Button action handlers
+    
     window.startNextProject = () => {
-        const currentLevel = savedData.currentLevel || "level1";
-        alert(`Starting next project in ${levelMap[currentLevel].name}...`);
+        alert("Starting next project...");
     };
-
+    
     window.viewRoadmap = () => {
-        alert("Showing full roadmap...");
+        alert("Viewing full roadmap...");
     };
-
+    
     window.trackProgress = () => {
-        const totalCompleted = Object.values(savedData.checked).filter(v => v).length;
-        alert(`You have completed ${totalCompleted} projects total!`);
+        const total = Object.values(savedData.checked).filter(v => v).length;
+        alert(`You've completed ${total} projects!`);
     };
-
-    // Initialize the dashboard
+    
+    // Initialize everything
     initializeDashboard();
 });

@@ -230,12 +230,13 @@ body {
 }
 
 /* ============================
-   ROADMAP SECTION - ENHANCED WITH LEVEL LOCKING
+   ROADMAP SECTION
 ============================ */
 .roadmap-section h2 {
     margin-bottom: 10px;
 }
 
+/* LEVEL CARDS */
 .level-card {
     background: rgba(0, 0, 0, 0.55);
     border: 1px solid rgba(0, 255, 255, 0.35);
@@ -253,27 +254,17 @@ body {
     box-shadow: 0 0 22px rgba(0, 255, 255, 0.6);
 }
 
-/* Level Locking Visuals */
+/* Locked cards */
 .level-card.locked {
     opacity: 0.7;
     filter: grayscale(0.5);
     cursor: not-allowed;
+    pointer-events: none;
 }
 
 .level-card.locked:hover {
     transform: none;
     box-shadow: none;
-}
-
-.level-card.locked::after {
-    content: "🔒";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-    z-index: 2;
-    opacity: 0.5;
 }
 
 /* Active Level Highlighting */
@@ -296,7 +287,7 @@ body {
     border: 1px solid rgba(0, 255, 255, 0.2);
 }
 
-/* Progress Bar Enhancement */
+/* Progress Bar */
 .progress-container {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -312,25 +303,52 @@ body {
     border-radius: 10px;
 }
 
-/* Progress Text Styling */
+/* Progress Text */
 .level-card p {
     color: #b8eaff;
     margin-top: 8px;
     font-size: 0.95rem;
 }
 
+/* PROJECT LISTS */
 .projects-list {
     display: none;
     margin-top: 15px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
 }
 
-.projects-list ul {
-    padding-left: 20px;
+/* Project Items */
+.project-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 8px 0;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    transition: background 0.3s ease;
 }
 
-.projects-list li {
-    margin-bottom: 6px;
+.project-item:hover {
+    background: rgba(0, 255, 255, 0.1);
+}
+
+.project-item input[type="checkbox"] {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #00eaff;
+}
+
+.project-item label {
     color: #c7f4ff;
+    cursor: pointer;
+    flex-grow: 1;
+    font-size: 1rem;
 }
 
 /* ============================
@@ -374,37 +392,6 @@ body {
 }
 
 /* ============================
-   PROJECT ITEMS
-============================ */
-.project-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    transition: background 0.3s ease;
-}
-
-.project-item:hover {
-    background: rgba(0, 255, 255, 0.1);
-}
-
-.project-item input[type="checkbox"] {
-    margin-right: 10px;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #00eaff;
-}
-
-.project-item label {
-    color: #c7f4ff;
-    cursor: pointer;
-    flex-grow: 1;
-}
-
-/* ============================
    DASHBOARD ACTIONS
 ============================ */
 .actions-section {
@@ -426,14 +413,23 @@ body {
     color: #ffffff;
     box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
     transition: 0.3s ease;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
 }
 
 .reset-btn:hover {
     transform: scale(1.05);
     box-shadow: 0 0 25px rgba(255, 68, 68, 0.9);
+}
+
+/* Lock Overlay (Added by JavaScript) */
+.lock-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    z-index: 10;
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 /* ============================
@@ -443,6 +439,7 @@ body {
     .login-container {
         flex-direction: column;
         height: auto;
+        width: 95%;
     }
 
     .register-layout {
@@ -455,7 +452,16 @@ body {
     }
 
     .left-panel {
-        height: 140px;
+        height: 120px;
+        padding: 20px;
+    }
+    
+    .left-panel h1 {
+        font-size: 32px;
+    }
+    
+    .right-panel {
+        padding: 30px;
     }
     
     .level-card {
@@ -480,92 +486,10 @@ body {
     
     .actions-section {
         flex-direction: column;
+        align-items: stretch;
     }
     
-    .reset-btn {
-        position: relative;
-        bottom: auto;
-        right: auto;
-        margin-top: 10px;
+    .btn-action, .reset-btn {
+        width: 100%;
     }
-}
-
-
-/* ============================
-   CLICK FIXES FOR LEVEL CARDS
-============================ */
-
-/* Ensure locked cards are truly not clickable */
-.level-card.locked {
-    pointer-events: none !important;
-    user-select: none !important;
-}
-
-/* Ensure unlocked cards are clickable */
-.level-card:not(.locked) {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-/* Remove any z-index issues with lock overlays */
-.level-card .lock-overlay {
-    pointer-events: none !important;
-    z-index: 1 !important;
-}
-
-/* Make sure content is above lock overlay */
-.level-card > *:not(.lock-overlay) {
-    position: relative;
-    z-index: 2;
-}
-
-/* Active level should have highest priority */
-.level-card.active-level {
-    z-index: 10 !important;
-}
-
-/* Fix for clickable level cards */
-.level-card {
-    cursor: pointer !important;
-    position: relative;
-    z-index: 1;
-}
-
-.level-card.locked {
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-    opacity: 0.7;
-}
-
-.level-card.locked::before {
-    content: "🔒";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2rem;
-    z-index: 10;
-    opacity: 0.5;
-}
-
-/* Make sure project lists are properly separated */
-.projects-list {
-    margin-top: 15px;
-    margin-bottom: 25px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    border: 1px solid rgba(0, 255, 255, 0.2);
-}
-
-/* Ensure checkboxes are properly styled */
-.project-item {
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    transition: background 0.3s ease;
-}
-
-.project-item:hover {
-    background: rgba(0, 255, 255, 0.1);
 }

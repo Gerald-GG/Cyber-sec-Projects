@@ -23,10 +23,18 @@ if (currentPage === 'index.html' || currentPage === '') {
                     return;
                 }
                 
-                // For demo: Accept any credentials (in real app, verify against database)
-                // Save login state
+                // For demo: Accept any credentials
                 localStorage.setItem('userLoggedIn', 'true');
                 localStorage.setItem('userIdentifier', identifier);
+                
+                // Initialize progress for new user
+                if (!localStorage.getItem('cyber_dashboard_progress')) {
+                    localStorage.setItem('cyber_dashboard_progress', JSON.stringify({
+                        checked: {},
+                        currentLevel: "level1",
+                        unlockedLevels: ["level1"]
+                    }));
+                }
                 
                 // Redirect to dashboard
                 window.location.href = 'dashboard.html';
@@ -84,13 +92,8 @@ else if (currentPage === 'register.html') {
                 users.push({
                     username,
                     email,
-                    password, // Note: In production, you should hash passwords!
-                    joined: new Date().toISOString(),
-                    progress: {
-                        completedProjects: 0,
-                        unlockedLevels: ['level1'],
-                        currentLevel: 'level1'
-                    }
+                    password,
+                    joined: new Date().toISOString()
                 });
                 
                 localStorage.setItem('cyberUsers', JSON.stringify(users));
@@ -120,21 +123,16 @@ else if (currentPage === 'register.html') {
 
 // Handle Dashboard Page
 else if (currentPage === 'dashboard.html') {
-    // Authentication check - runs before DOMContentLoaded
+    // Authentication check
     (function checkAuth() {
         const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
         const hasProgress = localStorage.getItem('cyber_dashboard_progress');
         
-        // Allow access if:
-        // 1. User is logged in, OR
-        // 2. User has existing progress (returning user without explicit login)
         if (!isLoggedIn && !hasProgress) {
-            // No session and no progress - redirect to login
             window.location.href = 'index.html';
             return false;
         }
         
-        // If user has progress but wasn't logged in, create a session
         if (!isLoggedIn && hasProgress) {
             localStorage.setItem('userLoggedIn', 'true');
             localStorage.setItem('userIdentifier', 'Returning User');
@@ -144,14 +142,13 @@ else if (currentPage === 'dashboard.html') {
     })();
     
     // ============================================================================
-    // DASHBOARD FUNCTIONALITY (ORIGINAL CODE)
+    // DASHBOARD FUNCTIONALITY WITH CLICK FIXES
     // ============================================================================
     
     document.addEventListener("DOMContentLoaded", () => {
         const STORAGE_KEY = "cyber_dashboard_progress";
-        const UNLOCK_THRESHOLD = 70; // Minimum percentage to unlock next level
+        const UNLOCK_THRESHOLD = 70;
 
-        // Enhanced level map with unlock relationships
         const levelMap = {
             level1: { name: "Foundations", unlocks: "level2" },
             level2: { name: "Intermediate", unlocks: "level3" },
@@ -163,17 +160,15 @@ else if (currentPage === 'dashboard.html') {
         const skillDisplay = document.querySelector(".stat-card:nth-child(3) p");
         const currentLevelDisplay = document.querySelector(".stat-card:nth-child(2) p");
 
-        /* =========================
-           LOAD SAVED DATA
-        ========================= */
+        // Load saved data
         const savedData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
             checked: {},
             currentLevel: "level1",
-            unlockedLevels: ["level1"] // Always start with level 1 unlocked
+            unlockedLevels: ["level1"]
         };
 
         /* =========================
-           ENHANCED TOGGLE PROJECTS WITH LEVEL LOCKING
+           FIXED TOGGLE PROJECTS FUNCTION
         ========================= */
         window.toggleProjects = (levelId) => {
             // Check if level is unlocked
@@ -184,40 +179,40 @@ else if (currentPage === 'dashboard.html') {
                 return;
             }
 
+            // Hide all project lists
             document.querySelectorAll(".projects-list").forEach(list => {
                 list.style.display = "none";
             });
 
+            // Show selected project list
             const target = document.getElementById(levelId);
             if (target) {
                 target.style.display = "block";
             }
 
-            // Update active level styling
+            // Update active level styling - FIXED SELECTOR
             document.querySelectorAll(".level-card").forEach(card => {
                 card.classList.remove("active-level");
             });
             
-            const levelCard = document.querySelector(`[onclick="toggleProjects('${levelId}')"]`);
-            if (levelCard) {
-                levelCard.classList.add("active-level");
-            }
+            // Find the level card that was clicked
+            const allLevelCards = document.querySelectorAll('.level-card');
+            allLevelCards.forEach(card => {
+                const onclickAttr = card.getAttribute('onclick');
+                if (onclickAttr && onclickAttr.includes(`toggleProjects('${levelId}')`)) {
+                    card.classList.add("active-level");
+                }
+            });
 
             currentLevelDisplay.textContent = levelMap[levelId].name;
             savedData.currentLevel = levelId;
             saveData();
         };
 
-        /* =========================
-           SAVE DATA
-        ========================= */
         function saveData() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(savedData));
         }
 
-        /* =========================
-           CALCULATE LEVEL PROGRESS
-        ========================= */
         function calculateLevelProgress(levelId) {
             const card = document.querySelector(`#${levelId}`);
             if (!card) return 0;
@@ -231,14 +226,24 @@ else if (currentPage === 'dashboard.html') {
         }
 
         /* =========================
-           ENHANCED UPDATE PROGRESS WITH UNLOCK SYSTEM
+           FIXED UPDATE PROGRESS FUNCTION
         ========================= */
         function updateProgress() {
             let totalCompleted = 0;
             const newlyUnlocked = [];
 
             document.querySelectorAll(".level-card").forEach(card => {
-                const checkboxes = card.querySelectorAll("input[type='checkbox']");
+                // Get level ID from onclick attribute
+                const onclickAttr = card.getAttribute('onclick');
+                const levelId = onclickAttr ? onclickAttr.match(/toggleProjects\('(level\d+)'\)/)?.[1] : null;
+                
+                if (!levelId) return;
+                
+                // Find corresponding projects list
+                const projectsList = document.getElementById(levelId);
+                if (!projectsList) return;
+                
+                const checkboxes = projectsList.querySelectorAll("input[type='checkbox']");
                 const progressBar = card.querySelector(".progress");
                 const progressText = card.querySelector("p");
 
@@ -248,14 +253,18 @@ else if (currentPage === 'dashboard.html') {
                 const total = checkboxes.length;
                 const percent = Math.round((completed / total) * 100);
 
-                progressBar.style.width = percent + "%";
-                progressText.textContent = `Progress: ${completed} / ${total} projects (${percent}%)`;
-
-                // Find level ID from card's onclick attribute
-                const onclick = card.getAttribute("onclick");
-                const levelId = onclick ? onclick.match(/toggleProjects\('(level\d+)'\)/)?.[1] : null;
+                // Update progress bar
+                if (progressBar) {
+                    progressBar.style.width = percent + "%";
+                }
                 
-                if (levelId && levelMap[levelId]) {
+                // Update progress text
+                if (progressText) {
+                    progressText.textContent = `Progress: ${completed} / ${total} projects (${percent}%)`;
+                }
+
+                // Handle unlock status
+                if (levelMap[levelId]) {
                     // Add or update unlock status indicator
                     let unlockText = card.querySelector(".unlock-status");
                     if (!unlockText) {
@@ -273,28 +282,26 @@ else if (currentPage === 'dashboard.html') {
                         }
                         unlockText.textContent = `✅ Unlocks: ${levelMap[nextLevel].name}`;
                         unlockText.style.color = "#4ade80";
-                        unlockText.style.fontSize = "0.85rem";
-                        unlockText.style.marginTop = "8px";
-                        unlockText.style.fontWeight = "500";
                     } else if (levelMap[levelId].unlocks) {
                         unlockText.textContent = `🔒 ${UNLOCK_THRESHOLD}% required to unlock ${levelMap[levelMap[levelId].unlocks].name}`;
                         unlockText.style.color = "#94a3b8";
-                        unlockText.style.fontSize = "0.85rem";
-                        unlockText.style.marginTop = "8px";
-                        unlockText.style.fontWeight = "500";
                     } else if (!levelMap[levelId].unlocks) {
                         unlockText.textContent = "🏁 Final Level";
                         unlockText.style.color = "#f59e0b";
-                        unlockText.style.fontSize = "0.85rem";
-                        unlockText.style.marginTop = "8px";
-                        unlockText.style.fontWeight = "500";
                     }
                     
+                    // Set basic unlock status styles
+                    unlockText.style.fontSize = "0.85rem";
+                    unlockText.style.marginTop = "8px";
+                    unlockText.style.fontWeight = "500";
+                    
                     // Update card appearance based on lock status
-                    if (!savedData.unlockedLevels.includes(levelId) && levelId !== "level1") {
+                    const isUnlocked = savedData.unlockedLevels.includes(levelId);
+                    
+                    if (!isUnlocked && levelId !== "level1") {
                         card.style.opacity = "0.7";
-                        card.style.position = "relative";
                         card.style.cursor = "not-allowed";
+                        card.style.pointerEvents = "none"; // Disable clicks
                         
                         // Add lock overlay if not present
                         if (!card.querySelector(".lock-overlay")) {
@@ -315,6 +322,9 @@ else if (currentPage === 'dashboard.html') {
                     } else {
                         card.style.opacity = "1";
                         card.style.cursor = "pointer";
+                        card.style.pointerEvents = "auto"; // Enable clicks
+                        
+                        // Remove lock overlay
                         const lockOverlay = card.querySelector(".lock-overlay");
                         if (lockOverlay) {
                             lockOverlay.remove();
@@ -326,8 +336,13 @@ else if (currentPage === 'dashboard.html') {
             });
 
             // Update global stats
-            completedDisplay.textContent = `${totalCompleted} projects completed`;
-            skillDisplay.textContent = totalCompleted;
+            if (completedDisplay) {
+                completedDisplay.textContent = `${totalCompleted} projects completed`;
+            }
+            
+            if (skillDisplay) {
+                skillDisplay.textContent = totalCompleted;
+            }
 
             // Save updated unlocked levels
             saveData();
@@ -340,15 +355,10 @@ else if (currentPage === 'dashboard.html') {
             }
         }
 
-        /* =========================
-           NOTIFICATION SYSTEM
-        ========================= */
         function showNotification(message) {
-            // Remove existing notification
             const existing = document.querySelector(".notification");
             if (existing) existing.remove();
 
-            // Create notification
             const notification = document.createElement("div");
             notification.className = "notification";
             notification.textContent = message;
@@ -368,7 +378,6 @@ else if (currentPage === 'dashboard.html') {
 
             document.body.appendChild(notification);
 
-            // Auto-remove after 4 seconds
             setTimeout(() => {
                 notification.style.animation = "slideOut 0.3s ease";
                 setTimeout(() => notification.remove(), 300);
@@ -376,29 +385,29 @@ else if (currentPage === 'dashboard.html') {
         }
 
         /* =========================
-           RESTORE CHECKBOX STATE (Modified to trigger unlocks)
+           RESTORE CHECKBOX STATE
         ========================= */
-        document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-            // Use a more robust way to identify checkbox
-            const projectItem = cb.closest('.project-item') || cb.parentElement;
-            const id = projectItem.textContent.trim() || 
-                       cb.id || 
-                       cb.name || 
-                       `project_${Math.random().toString(36).substr(2, 9)}`;
+        function restoreCheckboxes() {
+            document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+                // Create a unique ID for each checkbox
+                const projectItem = cb.closest('.project-item') || cb.parentElement;
+                const projectText = projectItem?.textContent?.trim() || '';
+                const id = projectText || `project_${Math.random().toString(36).substr(2, 9)}`;
 
-            if (savedData.checked[id]) {
-                cb.checked = true;
-            }
+                if (savedData.checked[id]) {
+                    cb.checked = true;
+                }
 
-            cb.addEventListener("change", () => {
-                savedData.checked[id] = cb.checked;
-                saveData();
-                updateProgress(); // Now includes unlock checks
+                cb.addEventListener("change", () => {
+                    savedData.checked[id] = cb.checked;
+                    saveData();
+                    updateProgress();
+                });
             });
-        });
+        }
 
         /* =========================
-           RESTORE CURRENT LEVEL & INITIALIZE UI
+           INITIALIZE UI - WITH CLICK FIXES
         ========================= */
         function initializeUI() {
             // Add CSS for animations and styling
@@ -413,10 +422,10 @@ else if (currentPage === 'dashboard.html') {
                     to { transform: translateX(100%); opacity: 0; }
                 }
                 .level-card.active-level {
-                    background: rgba(99, 102, 241, 0.1);
-                    border-left: 4px solid #6366f1;
+                    background: rgba(0, 234, 255, 0.1);
+                    border-left: 4px solid #00eaff;
                     transform: translateY(-2px);
-                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                    box-shadow: 0 0 25px rgba(0, 234, 255, 0.3);
                 }
                 .level-card {
                     transition: all 0.3s ease;
@@ -426,78 +435,93 @@ else if (currentPage === 'dashboard.html') {
             `;
             document.head.appendChild(style);
 
-            // Apply initial lock state to cards
+            // Setup level cards - ensure they're clickable
             document.querySelectorAll(".level-card").forEach(card => {
-                const onclick = card.getAttribute("onclick");
-                const levelId = onclick ? onclick.match(/toggleProjects\('(level\d+)'\)/)?.[1] : null;
+                const onclickAttr = card.getAttribute('onclick');
+                const levelId = onclickAttr ? onclickAttr.match(/toggleProjects\('(level\d+)'\)/)?.[1] : null;
                 
-                if (levelId && !savedData.unlockedLevels.includes(levelId) && levelId !== "level1") {
-                    card.style.opacity = "0.7";
-                    card.style.position = "relative";
-                    card.style.cursor = "not-allowed";
+                if (levelId) {
+                    const isUnlocked = savedData.unlockedLevels.includes(levelId);
                     
-                    // Add lock overlay
-                    const lockOverlay = document.createElement("div");
-                    lockOverlay.className = "lock-overlay";
-                    lockOverlay.innerHTML = "🔒";
-                    lockOverlay.style.cssText = `
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        font-size: 2rem;
-                        z-index: 2;
-                        opacity: 0.5;
-                    `;
-                    card.appendChild(lockOverlay);
+                    if (!isUnlocked && levelId !== "level1") {
+                        // Locked level
+                        card.style.opacity = "0.7";
+                        card.style.cursor = "not-allowed";
+                        card.style.pointerEvents = "none";
+                        
+                        // Add lock overlay
+                        const lockOverlay = document.createElement("div");
+                        lockOverlay.className = "lock-overlay";
+                        lockOverlay.innerHTML = "🔒";
+                        lockOverlay.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            font-size: 2rem;
+                            z-index: 2;
+                            opacity: 0.5;
+                        `;
+                        card.appendChild(lockOverlay);
+                    } else {
+                        // Unlocked level
+                        card.style.opacity = "1";
+                        card.style.cursor = "pointer";
+                        card.style.pointerEvents = "auto";
+                        
+                        // Make sure no lock overlay
+                        const lockOverlay = card.querySelector(".lock-overlay");
+                        if (lockOverlay) {
+                            lockOverlay.remove();
+                        }
+                    }
                 }
             });
 
-            // Restore current level display
+            // Set initial active level
             if (savedData.currentLevel && savedData.unlockedLevels.includes(savedData.currentLevel)) {
-                toggleProjects(savedData.currentLevel);
+                // Add slight delay to ensure DOM is ready
+                setTimeout(() => {
+                    toggleProjects(savedData.currentLevel);
+                }, 100);
             } else if (savedData.unlockedLevels.length > 0) {
-                // Default to first unlocked level
-                toggleProjects(savedData.unlockedLevels[0]);
+                setTimeout(() => {
+                    toggleProjects(savedData.unlockedLevels[0]);
+                }, 100);
             }
         }
 
         /* =========================
-           RESET PROGRESS (Optional - for testing)
+           RESET PROGRESS
         ========================= */
         window.resetProgress = () => {
             if (confirm("Reset all progress? This will clear all completed projects and level unlocks.")) {
                 localStorage.removeItem(STORAGE_KEY);
+                // Re-initialize with default data
+                localStorage.setItem('cyber_dashboard_progress', JSON.stringify({
+                    checked: {},
+                    currentLevel: "level1",
+                    unlockedLevels: ["level1"]
+                }));
                 location.reload();
             }
         };
 
         /* =========================
-           ENHANCED LOGOUT FUNCTION
+           LOGOUT
         ========================= */
         window.logout = () => {
-            // Clear session
             localStorage.removeItem('userLoggedIn');
             localStorage.removeItem('userIdentifier');
-            
-            // Optional: Clear progress data too (comment out to keep progress)
-            // localStorage.removeItem(STORAGE_KEY);
-            // localStorage.removeItem('cyberUsers');
-            
-            // Redirect to login
             window.location.href = "index.html";
         };
 
-        // Initialize the UI and update progress
+        // Initialize everything
         initializeUI();
+        restoreCheckboxes();
         updateProgress();
+        
+        // Debug: Check if level cards have click handlers
+        console.log("Dashboard initialized. Level cards found:", document.querySelectorAll('.level-card').length);
     });
-}
-
-// Handle any other pages (404, etc.)
-else {
-    // If user is logged in but on wrong page, redirect to dashboard
-    if (localStorage.getItem('userLoggedIn') === 'true') {
-        window.location.href = 'dashboard.html';
-    }
 }

@@ -24,15 +24,15 @@
             <section class="stats-section">
                 <div class="stat-card">
                     <h3>Projects Completed</h3>
-                    <p id="completedCount">5 / 50</p>
+                    <p id="completedCount">0 / 50</p>
                 </div>
                 <div class="stat-card">
                     <h3>Current Level</h3>
-                    <p>Foundations</p>
+                    <p id="currentLevelDisplay">Foundations</p>
                 </div>
                 <div class="stat-card">
                     <h3>Skills Mastered</h3>
-                    <p>10</p>
+                    <p id="skillsDisplay">0</p>
                 </div>
             </section>
 
@@ -40,80 +40,117 @@
             <section class="roadmap-section">
                 <h2>Cybersecurity Roadmap</h2>
 
-                <!-- Level 1 -->
+                <!-- Level 1 Card -->
                 <div class="level-card" onclick="toggleProjects('level1')">
                     <h3>LEVEL 1 — FOUNDATIONS</h3>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 50%"></div>
+                    <div class="progress-container">
+                        <div class="progress" style="width: 0%"></div>
                     </div>
-                    <p>Progress: 5 / 10 projects</p>
-                    <div id="level1" class="projects-list">
-                        <ul>
-                            <li><input type="checkbox" checked /> Home Lab Setup</li>
-                            <li><input type="checkbox" checked /> Packet Sniffer</li>
-                            <li><input type="checkbox" checked /> Firewall Rules</li>
-                            <li><input type="checkbox" /> Cryptography Scripts</li>
-                            <li><input type="checkbox" /> Password Cracker</li>
-                        </ul>
+                    <p>Progress: 0 / 5 projects (0%)</p>
+                </div>
+
+                <!-- Level 1 Projects -->
+                <div id="level1" class="projects-list" style="display: block;">
+                    <div class="project-item">
+                        <input type="checkbox" id="project1">
+                        <label for="project1">Home Lab Setup</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project2">
+                        <label for="project2">Packet Sniffer</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project3">
+                        <label for="project3">Firewall Rules</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project4">
+                        <label for="project4">Cryptography Scripts</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project5">
+                        <label for="project5">Password Cracker</label>
                     </div>
                 </div>
 
-                <!-- Level 2 -->
+                <!-- Level 2 Card -->
                 <div class="level-card" onclick="toggleProjects('level2')">
                     <h3>LEVEL 2 — INTERMEDIATE</h3>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 20%"></div>
+                    <div class="progress-container">
+                        <div class="progress" style="width: 0%"></div>
                     </div>
-                    <p>Progress: 3 / 15 projects</p>
-                    <div id="level2" class="projects-list">
-                        <ul>
-                            <li><input type="checkbox" /> Snort IDS Setup</li>
-                            <li><input type="checkbox" /> Vulnerability Scanner</li>
-                            <li><input type="checkbox" /> DNS Spoofing</li>
-                        </ul>
+                    <p>Progress: 0 / 3 projects (0%)</p>
+                </div>
+
+                <!-- Level 2 Projects -->
+                <div id="level2" class="projects-list" style="display: none;">
+                    <div class="project-item">
+                        <input type="checkbox" id="project6">
+                        <label for="project6">Snort IDS Setup</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project7">
+                        <label for="project7">Vulnerability Scanner</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project8">
+                        <label for="project8">DNS Spoofing</label>
                     </div>
                 </div>
 
-                <!-- Level 3 -->
+                <!-- Level 3 Card -->
                 <div class="level-card" onclick="toggleProjects('level3')">
                     <h3>LEVEL 3 — ADVANCED</h3>
-                    <div class="progress-bar">
+                    <div class="progress-container">
                         <div class="progress" style="width: 0%"></div>
                     </div>
-                    <p>Progress: 0 / 15 projects</p>
-                    <div id="level3" class="projects-list">
-                        <ul>
-                            <li>Malware Analysis Sandbox</li>
-                            <li>Rootkit Analysis</li>
-                        </ul>
+                    <p>Progress: 0 / 2 projects (0%)</p>
+                </div>
+
+                <!-- Level 3 Projects -->
+                <div id="level3" class="projects-list" style="display: none;">
+                    <div class="project-item">
+                        <input type="checkbox" id="project9">
+                        <label for="project9">Malware Analysis Sandbox</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project10">
+                        <label for="project10">Rootkit Analysis</label>
                     </div>
                 </div>
 
-                <!-- Level 4 -->
+                <!-- Level 4 Card -->
                 <div class="level-card" onclick="toggleProjects('level4')">
                     <h3>LEVEL 4 — EXPERT</h3>
-                    <div class="progress-bar">
+                    <div class="progress-container">
                         <div class="progress" style="width: 0%"></div>
                     </div>
-                    <p>Progress: 0 / 10 projects</p>
-                    <div id="level4" class="projects-list">
-                        <ul>
-                            <li>Custom Cyber Range</li>
-                            <li>Zero-Day Research</li>
-                        </ul>
+                    <p>Progress: 0 / 2 projects (0%)</p>
+                </div>
+
+                <!-- Level 4 Projects -->
+                <div id="level4" class="projects-list" style="display: none;">
+                    <div class="project-item">
+                        <input type="checkbox" id="project11">
+                        <label for="project11">Custom Cyber Range</label>
+                    </div>
+                    <div class="project-item">
+                        <input type="checkbox" id="project12">
+                        <label for="project12">Zero-Day Research</label>
                     </div>
                 </div>
             </section>
 
             <!-- Actions -->
             <section class="actions-section">
-                <button class="btn-action">Start Next Project</button>
-                <button class="btn-action">View Full Roadmap</button>
-                <button class="btn-action">Track Progress</button>
+                <button class="btn-action" onclick="startNextProject()">Start Next Project</button>
+                <button class="btn-action" onclick="viewRoadmap()">View Full Roadmap</button>
+                <button class="btn-action" onclick="trackProgress()">Track Progress</button>
+                <button class="btn-action reset-btn" onclick="resetProgress()">Reset Progress</button>
             </section>
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
